@@ -15,14 +15,75 @@ from gui.gui_qt_ui import Ui_Pokerbot
 from decisionmaker.genetic_algorithm1 import *
 from decisionmaker.curvefitting import *
 
-class SignalDefinitions(QObject):
+class UIActionAndSignals(QObject):
     signal_progressbar_setvalue = QtCore.pyqtSignal(int)
     signal_status = QtCore.pyqtSignal(str)
-    def __init__(self,ui):
+
+    signal_bar_chart_update=QtCore.pyqtSignal()
+    signal_funds_chart_update=QtCore.pyqtSignal()
+    signal_pie_chart_update=QtCore.pyqtSignal(dict)
+    signal_curve_chart_update1=QtCore.pyqtSignal(float,float,float,float,float,float,str,str)
+    signal_curve_chart_update2 = QtCore.pyqtSignal(float, float, float, float, float, float, float, float,float)
+
+
+    def __init__(self,ui,p):
         QObject.__init__(self)
-        self.ui_action = UIAction(ui)
-        self.signal_progressbar_setvalue.connect(self.ui_action.update_progressbar)
-        self.signal_status.connect(self.ui_action.update_mainwindow_status)
+        self.ui=ui
+
+        self.gui_funds = FundsPlotter(ui, p)
+        self.gui_bar = BarPlotter(ui, p)
+        self.gui_curve = CurvePlot(ui, p)
+        self.gui_pie = PiePlotter(ui, winnerCardTypeList={'Highcard':22})
+
+        self.signal_progressbar_setvalue.connect(self.update_progressbar)
+        self.signal_status.connect(self.update_mainwindow_status)
+
+        self.signal_bar_chart_update.connect(self.gui_bar.drawfigure)
+        self.signal_funds_chart_update.connect(self.gui_funds.drawfigure)
+        self.signal_curve_chart_update1.connect(self.gui_curve.update_plots)
+        self.signal_curve_chart_update2.connect(self.gui_curve.update_lines)
+        self.signal_pie_chart_update.connect(self.gui_pie.drawfigure)
+
+
+        # ui.button_options.clicked.connect()
+        # ui.button_strategy_editor.clicked.connect()
+        # ui.button_options.clicked.connect()
+
+        ui.button_log_analyser.clicked.connect(lambda: self.open_strategy_analyser(p))
+
+        ui.button_pause.clicked.connect(lambda: self.pause(ui,p))
+        ui.button_resume.clicked.connect(lambda: self.resume(ui,p))
+
+
+    def pause(self,ui,p):
+        print ("Game paused")
+        ui.button_resume.setEnabled(True)
+        ui.button_pause.setEnabled(False)
+        ui.button_log_analyser.setEnabled(True)
+        p.pause=True
+
+    def resume(self, ui,p):
+        print("Game resumed")
+        ui.button_resume.setEnabled(False)
+        ui.button_pause.setEnabled(True)
+        ui.button_log_analyser.setEnabled(False)
+        p.pause=False
+
+    def open_strategy_analyser(self,p):
+        self.stragegy_analyser_form = QtGui.QWidget()
+        ui_analyser = Ui_Form()
+        ui_analyser.setupUi(self.stragegy_analyser_form)
+        self.stragegy_analyser_form.show()
+
+        self.gui_bar2 = BarPlotter2(ui_analyser, p)
+        self.gui_fundschange = FundsChangePlot(ui_analyser, p)
+
+    def update_progressbar(self, value):
+        self.ui.progress_bar.setValue(value)
+
+    def update_mainwindow_status(self, text):
+        self.ui.status.setText(text)
+
 
 
 class FundsPlotter(FigureCanvas):
@@ -31,7 +92,7 @@ class FundsPlotter(FigureCanvas):
         self.ui = proxy(ui)
         self.fig = Figure(figsize=(5, 4), dpi=50)
         super(FundsPlotter, self).__init__(self.fig)
-        self.drawfigure()
+        #self.drawfigure()
         self.ui.vLayout.insertWidget(1, self)
 
     def drawfigure(self):
@@ -41,9 +102,6 @@ class FundsPlotter(FigureCanvas):
         data=L.get_fundschange_chart(Strategy)
         data=data.iloc[::-1].reset_index(drop=True)
         data=np.cumsum(data)
-        # try: data=data-data.iloc[-1];
-        # except: pass
-
         self.fig.clf()
         self.axes = self.fig.add_subplot(111)  # create an axis
         self.axes.hold(False)  # discards the old graph
@@ -59,12 +117,10 @@ class BarPlotter(FigureCanvas):
         self.ui = proxy(ui)
         self.fig = Figure(figsize=(5, 4), dpi=50)
         super(BarPlotter, self).__init__(self.fig)
-        self.drawfigure()
+        #self.drawfigure()
         self.ui.vLayout2.insertWidget(1, self)
 
     def drawfigure(self):
-        self.fig.clf()
-        data = [random.random() for i in range(10)]
         self.axes = self.fig.add_subplot(111)  # create an axis
         self.axes.hold(True)  # discards the old graph
 
@@ -132,7 +188,7 @@ class PiePlotter(FigureCanvas):
         self.ui = proxy(ui)
         self.fig = Figure(figsize=(5, 4), dpi=50)
         super(PiePlotter, self).__init__(self.fig)
-        self.drawfigure(winnerCardTypeList)
+        #self.drawfigure(winnerCardTypeList)
         self.ui.vLayout4.insertWidget(1, self)
 
     def drawfigure(self, winnerCardTypeList):
@@ -172,7 +228,7 @@ class CurvePlot(FigureCanvas):
         self.axes.set_ylabel('Max $')
         self.draw()
 
-    def updatePlots(self, histEquity, histMinCall, histMinBet, equity, minCall, minBet, color1, color2):
+    def update_plots(self, histEquity, histMinCall, histMinBet, equity, minCall, minBet, color1, color2):
         try:
             self.dots1.remove()
             self.dots2.remove()
@@ -188,8 +244,8 @@ class CurvePlot(FigureCanvas):
 
         self.draw()
 
-    def updateLines(self, power1, power2, minEquityCall, minEquityBet, smallBlind, bigBlind, maxValue, maxEquityCall,
-                    maxEquityBet):
+    def update_lines(self, power1, power2, minEquityCall, minEquityBet, smallBlind, bigBlind, maxValue, maxEquityCall,
+                     maxEquityBet):
         x2 = np.linspace(0, 1, 100)
 
         d1 = Curvefitting(x2, smallBlind, bigBlind * 2, maxValue, minEquityCall, maxEquityCall, power1)
@@ -299,41 +355,6 @@ class BarPlotter2(FigureCanvas):
         self.axes.set_ylim((0, maxh))
 
         self.draw()
-
-class UIAction():
-    def __init__(self, ui):
-        self.ui=ui
-
-    def pause(self,ui,t1):
-        print ("Game paused")
-        ui.button_resume.setEnabled(True)
-        ui.button_pause.setEnabled(False)
-        ui.button_log_analyser.setEnabled(True)
-        t1.pause=True
-
-    def resume(self, ui,t1):
-        print("Game resumed")
-        ui.button_resume.setEnabled(False)
-        ui.button_pause.setEnabled(True)
-        ui.button_log_analyser.setEnabled(False)
-        t1.pause=False
-
-    def open_strategy_analyser(self,p):
-        self.stragegy_analyser_form = QtGui.QWidget()
-        ui_analyser = Ui_Form()
-        ui_analyser.setupUi(self.stragegy_analyser_form)
-        self.stragegy_analyser_form.show()
-
-        self.gui_bar2 = BarPlotter2(ui_analyser, p)
-        self.gui_fundschange = FundsChangePlot(ui_analyser, p)
-
-    def update_progressbar(self, value):
-        self.ui.progress_bar.setValue(value)
-        pass
-
-    def update_mainwindow_status(self, text):
-        self.ui.status.setText(text)
-
 
 if __name__ == "__main__":
     import sys
