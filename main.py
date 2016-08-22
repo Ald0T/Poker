@@ -102,16 +102,14 @@ class Tools(object):
         template = Image.open(name)
         self.lostEverything = cv2.cvtColor(np.array(template), cv2.COLOR_BGR2RGB)
 
-    def take_screenshot(self):
-        if terminalmode == False:
+    def take_screenshot(self,initial):
+        if not terminalmode and initial:
             ui_action_and_signals.signal_status.emit("")
-            ui_action_and_signals.signal_progressbar_setvalue.emit(0)
+            ui_action_and_signals.signal_progressbar_reset.emit()
         time.sleep(0.1)
         self.entireScreenPIL = ImageGrab.grab()
-        if terminalmode == False:
-            
-            ui_action_and_signals.signal_status.emit(str(p.current_strategy.text))
-            ui_action_and_signals.signal_progressbar_setvalue.emit(5)
+        if not terminalmode:ui_action_and_signals.signal_status.emit(str(p.current_strategy.text))
+        if not terminalmode: ui_action_and_signals.signal_progressbar_increase.emit(5)
         if terminalmode == False and p.exit_thread == True: sys.exit()
         if terminalmode == False and p.pause == True:
             while p.pause == True:
@@ -229,6 +227,7 @@ class Table(object):
     # baseclass that is inherited by the different types of Tables (e.g.
     # Pokerstars of Party Poker Table)
     def call_genetic_algorithm(self):
+        if not terminalmode:  ui_action_and_signals.signal_progressbar_increase.emit(5)
         ui_action_and_signals.signal_status.emit("Checking for AI update")
         n = L.get_game_count(p.current_strategy.text)
         lg = int(
@@ -237,6 +236,7 @@ class Table(object):
         if terminalmode == False:
             ui.gamenumber.display(str(n))
             ui.winnings.display(str(f))
+        if not terminalmode:  ui_action_and_signals.signal_progressbar_increase.emit(5)
         logger.info("Game #" + str(n) + " - Last " + str(lg) + ": $" + str(f))
         if n % int(p.XML_entries_list1['strategyIterationGames'].text) == 0 and f < float(
                 p.XML_entries_list1['minimumLossForIteration'].text):
@@ -269,13 +269,13 @@ class TablePP(Table):
 
             if terminalmode == False:
                 ui_action_and_signals.signal_status.emit(p.XML_entries_list1['pokerSite'].text + " not found yet")
-                ui_action_and_signals.signal_progressbar_setvalue.emit(10)
+                ui_action_and_signals.signal_progressbar_increase.emit(5)
             logger.debug("Top left corner NOT found")
             time.sleep(1)
             return False
 
     def check_for_button(self, scraped):
-        if not terminalmode:  ui_action_and_signals.signal_progressbar_setvalue.emit(55)
+        if not terminalmode:  ui_action_and_signals.signal_progressbar_increase.emit(5)
         cards = ' '.join(t.mycards)
         pil_image = self.crop_image(a.entireScreenPIL, self.topleftcorner[0] + 540, self.topleftcorner[1] + 480,
                                     self.topleftcorner[0] + 700, self.topleftcorner[1] + 580)
@@ -293,8 +293,8 @@ class TablePP(Table):
             return False
 
     def check_for_checkbutton(self, scraped):
-        if terminalmode == False:
-            ui_action_and_signals.signal_status.emit("Check for Check")
+        if not terminalmode: ui_action_and_signals.signal_status.emit("Check for Check")
+        if not terminalmode: ui_action_and_signals.signal_progressbar_increase.emit(5)
         logger.debug("Checking for check button")
         pil_image = self.crop_image(a.entireScreenPIL, self.topleftcorner[0] + 560, self.topleftcorner[1] + 478,
                                     self.topleftcorner[0] + 670, self.topleftcorner[1] + 550)
@@ -357,7 +357,7 @@ class TablePP(Table):
         return True
 
     def check_for_imback(self, scraped):
-        if not terminalmode:  ui_action_and_signals.signal_progressbar_setvalue.emit(25)
+        if not terminalmode:  ui_action_and_signals.signal_progressbar_increase.emit(10)
         pil_image = self.crop_image(a.entireScreenPIL, self.topleftcorner[0] + 402, self.topleftcorner[1] + 458,
                                     self.topleftcorner[0] + 442 + 400, self.topleftcorner[1] + 550)
         # Convert RGB to BGR
@@ -371,7 +371,7 @@ class TablePP(Table):
             return True
 
     def check_for_call(self, scraped):
-        if not terminalmode:  ui_action_and_signals.signal_progressbar_setvalue.emit(85)
+        if not terminalmode:  ui_action_and_signals.signal_progressbar_increase.emit(10)
         logger.debug("Check for Call")
         pil_image = self.crop_image(a.entireScreenPIL, self.topleftcorner[0] + 575, self.topleftcorner[1] + 483,
                                     self.topleftcorner[0] + 575 + 100, self.topleftcorner[1] + 483 + 100)
@@ -403,7 +403,7 @@ class TablePP(Table):
         return True
 
     def get_table_cards(self, scraped):
-        if not terminalmode:  ui_action_and_signals.signal_progressbar_setvalue.emit(65)
+        if not terminalmode:  ui_action_and_signals.signal_progressbar_increase.emit(5)
         logger.debug("Get Table cards")
         self.cardsOnTable = []
         pil_image = self.crop_image(a.entireScreenPIL, t.topleftcorner[0] + 206, t.topleftcorner[1] + 158,
@@ -479,7 +479,7 @@ class TablePP(Table):
                 dic = sorted(dic.items(), key=operator.itemgetter(1))
                 logger.error("Analysing cards: " + str(dic))
 
-        if not terminalmode:  ui_action_and_signals.signal_progressbar_setvalue.emit(45)
+        if not terminalmode:  ui_action_and_signals.signal_progressbar_increase.emit(5)
         self.mycards = []
         pil_image = self.crop_image(a.entireScreenPIL, self.topleftcorner[0] + 450, self.topleftcorner[1] + 330,
                                     self.topleftcorner[0] + 450 + 80, self.topleftcorner[1] + 330 + 80)
@@ -500,7 +500,7 @@ class TablePP(Table):
             return False
 
     def get_covered_card_holders(self, scraped):
-        if not terminalmode:  ui_action_and_signals.signal_progressbar_setvalue.emit(70)
+        if not terminalmode:  ui_action_and_signals.signal_progressbar_increase.emit(5)
         if terminalmode == False: ui_action_and_signals.signal_status.emit("Analyse other players and position")
         pil_image = self.crop_image(a.entireScreenPIL, self.topleftcorner[0] + 0, self.topleftcorner[1] + 0,
                                     self.topleftcorner[0] + 800, self.topleftcorner[1] + 500)
@@ -567,7 +567,7 @@ class TablePP(Table):
             return True
 
     def get_played_players(self, scraped):
-        if not terminalmode:  ui_action_and_signals.signal_progressbar_setvalue.emit(80)
+        if not terminalmode:  ui_action_and_signals.signal_progressbar_increase.emit(5)
         if terminalmode == False: ui_action_and_signals.signal_status.emit("Analyse past players")
         pil_image = self.crop_image(a.entireScreenPIL, self.topleftcorner[0] + 0, self.topleftcorner[1] + 0,
                                     self.topleftcorner[0] + 800, self.topleftcorner[1] + 500)
@@ -641,7 +641,7 @@ class TablePP(Table):
         except:
             self.playerBetIncreasesPercentage = [0]
             self.maxPlayerBetIncreasesPercentage = 0
-
+        if not terminalmode:  ui_action_and_signals.signal_progressbar_increase.emit(5)
         if self.isHeadsUp:
             try:
                 self.maxPlayerBetIncreasesPercentage = (self.totalPotValue - h.previousPot - h.myLastBet) / h.myLastBet
@@ -675,7 +675,7 @@ class TablePP(Table):
         return True
 
     def get_total_pot_value(self):
-        if not terminalmode:  ui_action_and_signals.signal_progressbar_setvalue.emit(75)
+        if not terminalmode:  ui_action_and_signals.signal_progressbar_increase.emit(5)
         if terminalmode == False: ui_action_and_signals.signal_status.emit("Get Pot Value")
         logger.debug("Get TotalPot value")
         returnvalue = True
@@ -699,7 +699,7 @@ class TablePP(Table):
         return True
 
     def get_my_funds(self):
-        if not terminalmode:  ui_action_and_signals.signal_progressbar_setvalue.emit(35)
+        if not terminalmode:  ui_action_and_signals.signal_progressbar_increase.emit(5)
         logger.debug("Get my funds")
         x1 = 469
         y1 = 403
@@ -736,7 +736,7 @@ class TablePP(Table):
 
     def get_current_call_value(self):
         if not terminalmode: ui_action_and_signals.signal_status.emit("Get Call value")
-        if not terminalmode:  ui_action_and_signals.signal_progressbar_setvalue.emit(85)
+        if not terminalmode:  ui_action_and_signals.signal_progressbar_increase.emit(5)
         x1 = 585
         y1 = 516
         x2 = 585 + 70
@@ -765,7 +765,7 @@ class TablePP(Table):
         return True
 
     def get_current_bet_value(self):
-        if not terminalmode:  ui_action_and_signals.signal_progressbar_setvalue.emit(90)
+        if not terminalmode:  ui_action_and_signals.signal_progressbar_increase.emit(5)
         if not terminalmode:  ui_action_and_signals.signal_status.emit("Get Bet Value")
         logger.debug("Get bet value")
         x1 = 589 + 125
@@ -818,6 +818,7 @@ class TablePP(Table):
         return True
 
     def get_lost_everything(self, scraped):
+        if not terminalmode: ui_action_and_signals.signal_progressbar_increase.emit(5)
         x1 = 100
         y1 = 100
         x2 = 590 + 50 + 125
@@ -827,22 +828,18 @@ class TablePP(Table):
         img = cv2.cvtColor(np.array(pil_image), cv2.COLOR_BGR2RGB)
         count, points, bestfit = a.find_template_on_screen(scraped.lostEverything, img, 0.001)
         if count > 0:
-            if not terminalmode:
-                ui_action_and_signals.signal_progressbar_setvalue.emit(20)
-                pass
             h.lastGameID = str(h.GameID)
             t.myFundsChange = float(0) - float(str(h.myFundsHistory[-1]).strip('[]'))
             L.mark_last_game(t, h)
-            if terminalmode == False:
-                ui_action_and_signals.signal_status.emit("Everything is lost. Last game has been marked.")
-                ui_action_and_signals.signal_progressbar_setvalue.emit(15)
+            if not terminalmode: ui_action_and_signals.signal_status.emit("Everything is lost. Last game has been marked.")
+            if not terminalmode: ui_action_and_signals.signal_progressbar_reset()
             user_input = input("Press Enter for exit ")
             sys.exit()
         else:
             return True
 
     def get_new_hand(self):
-        if not terminalmode:  ui_action_and_signals.signal_progressbar_setvalue.emit(50)
+        if not terminalmode:  ui_action_and_signals.signal_progressbar_increase.emit(5)
         if h.previousCards != t.mycards:
             h.lastGameID = str(h.GameID)
             h.GameID = int(round(np.random.uniform(0, 999999999), 0))
@@ -862,16 +859,14 @@ class TablePP(Table):
             h.previousCards = t.mycards
             h.lastSecondRoundAdjustment = 0
 
-            a.take_screenshot()
-
+            a.take_screenshot(False)
         return True
 
     def run_montecarlo_wrapper(self):
         # self.montecarlo_thread = Process(target=self.run_montecarlo, args=())
         # self.montecarlo_thread.start()
-        ui_action_and_signals.signal_progressbar_setvalue.emit(95)
         self.run_montecarlo()
-        ui_action_and_signals.signal_progressbar_setvalue.emit(100)
+        ui_action_and_signals.signal_progressbar_increase.emit(10)
         return True
 
     def run_montecarlo(self):
@@ -918,7 +913,7 @@ class QtThreadManager(QtCore.QThread):
     def __init__(self):
         QtCore.QThread.__init__(self)
 
-    def run_pokerbot(self):
+    def start_separate_thread(self):
         self.start()
 
     def run(self):
@@ -953,7 +948,7 @@ class QtThreadManager(QtCore.QThread):
 
                 ready = False
                 while (not ready):
-                    ready = a.take_screenshot() and \
+                    ready = a.take_screenshot(True) and \
                             t.get_top_left_corner(a) and \
                             t.check_for_captcha() and \
                             t.get_lost_everything(a) and \
@@ -1061,7 +1056,7 @@ if __name__ == '__main__':
         ui_action_and_signals = UIActionAndSignals(ui, p)
 
         t1=QtThreadManager()
-        t1.run_pokerbot()
+        t1.start_separate_thread()
 
         MainWindow.show()
         sys.exit(app.exec_())
@@ -1070,4 +1065,4 @@ if __name__ == '__main__':
     elif terminalmode:
         print("Terminal mode selected. To view GUI set terminalmode=False")
         t1=QtThreadManager()
-        t1.run_pokerbot()
+        t1.start_separate_thread()

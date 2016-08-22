@@ -5,18 +5,16 @@ from matplotlib.backends.backend_qt4agg import (
     FigureCanvasQTAgg as FigureCanvas)
 from matplotlib.figure import Figure
 from PyQt4.QtCore import *
-from PyQt4.QtGui import *
 import random
-
 from weakref import proxy
 from gui.gui_qt_ui import Ui_Pokerbot
-
-
 from decisionmaker.genetic_algorithm1 import *
 from decisionmaker.curvefitting import *
 
 class UIActionAndSignals(QObject):
-    signal_progressbar_setvalue = QtCore.pyqtSignal(int)
+    signal_progressbar_increase = QtCore.pyqtSignal(int)
+    signal_progressbar_reset = QtCore.pyqtSignal()
+
     signal_status = QtCore.pyqtSignal(str)
 
     signal_bar_chart_update=QtCore.pyqtSignal()
@@ -25,17 +23,20 @@ class UIActionAndSignals(QObject):
     signal_curve_chart_update1=QtCore.pyqtSignal(float,float,float,float,float,float,str,str)
     signal_curve_chart_update2 = QtCore.pyqtSignal(float, float, float, float, float, float, float, float,float)
 
-
     def __init__(self,ui,p):
         QObject.__init__(self)
         self.ui=ui
+        self.progressbar_value=0
 
+        # Main Window matplotlip widgets
         self.gui_funds = FundsPlotter(ui, p)
         self.gui_bar = BarPlotter(ui, p)
         self.gui_curve = CurvePlot(ui, p)
         self.gui_pie = PiePlotter(ui, winnerCardTypeList={'Highcard':22})
 
-        self.signal_progressbar_setvalue.connect(self.update_progressbar)
+        # main window status update signal connections
+        self.signal_progressbar_increase.connect(self.increase_progressbar)
+        self.signal_progressbar_reset.connect(self.reset_progressbar)
         self.signal_status.connect(self.update_mainwindow_status)
 
         self.signal_bar_chart_update.connect(self.gui_bar.drawfigure)
@@ -53,7 +54,6 @@ class UIActionAndSignals(QObject):
 
         ui.button_pause.clicked.connect(lambda: self.pause(ui,p))
         ui.button_resume.clicked.connect(lambda: self.resume(ui,p))
-
 
     def pause(self,ui,p):
         print ("Game paused")
@@ -78,13 +78,17 @@ class UIActionAndSignals(QObject):
         self.gui_bar2 = BarPlotter2(ui_analyser, p)
         self.gui_fundschange = FundsChangePlot(ui_analyser, p)
 
-    def update_progressbar(self, value):
-        self.ui.progress_bar.setValue(value)
+    def increase_progressbar(self, value):
+        self.progressbar_value+=value
+        if self.progressbar_value>100: self.progressbar_value=100
+        self.ui.progress_bar.setValue(self.progressbar_value)
+
+    def reset_progressbar(self):
+        self.progressbar_value=0
+        self.ui.progress_bar.setValue(0)
 
     def update_mainwindow_status(self, text):
         self.ui.status.setText(text)
-
-
 
 class FundsPlotter(FigureCanvas):
     def __init__(self, ui, p):
