@@ -236,7 +236,6 @@ class Table(object):
         if terminalmode == False:
             ui.gamenumber.display(str(n))
             ui.winnings.display(str(f))
-        if not terminalmode:  ui_action_and_signals.signal_progressbar_increase.emit(5)
         logger.info("Game #" + str(n) + " - Last " + str(lg) + ": $" + str(f))
         if n % int(p.XML_entries_list1['strategyIterationGames'].text) == 0 and f < float(
                 p.XML_entries_list1['minimumLossForIteration'].text):
@@ -357,7 +356,6 @@ class TablePP(Table):
         return True
 
     def check_for_imback(self, scraped):
-        if not terminalmode:  ui_action_and_signals.signal_progressbar_increase.emit(10)
         pil_image = self.crop_image(a.entireScreenPIL, self.topleftcorner[0] + 402, self.topleftcorner[1] + 458,
                                     self.topleftcorner[0] + 442 + 400, self.topleftcorner[1] + 550)
         # Convert RGB to BGR
@@ -371,7 +369,7 @@ class TablePP(Table):
             return True
 
     def check_for_call(self, scraped):
-        if not terminalmode:  ui_action_and_signals.signal_progressbar_increase.emit(10)
+        if not terminalmode:  ui_action_and_signals.signal_progressbar_increase.emit(5)
         logger.debug("Check for Call")
         pil_image = self.crop_image(a.entireScreenPIL, self.topleftcorner[0] + 575, self.topleftcorner[1] + 483,
                                     self.topleftcorner[0] + 575 + 100, self.topleftcorner[1] + 483 + 100)
@@ -818,7 +816,6 @@ class TablePP(Table):
         return True
 
     def get_lost_everything(self, scraped):
-        if not terminalmode: ui_action_and_signals.signal_progressbar_increase.emit(5)
         x1 = 100
         y1 = 100
         x2 = 590 + 50 + 125
@@ -866,7 +863,7 @@ class TablePP(Table):
         # self.montecarlo_thread = Process(target=self.run_montecarlo, args=())
         # self.montecarlo_thread.start()
         self.run_montecarlo()
-        ui_action_and_signals.signal_progressbar_increase.emit(10)
+        ui_action_and_signals.signal_progressbar_increase.emit(30)
         return True
 
     def run_montecarlo(self):

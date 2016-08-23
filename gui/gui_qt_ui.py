@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'GUI_QT_ui.ui'
 #
-# Created: Sun Aug 21 21:38:51 2016
+# Created: Tue Aug 23 02:13:05 2016
 #      by: pyside-uic 0.2.15 running on PySide 1.2.4
 #
 # WARNING! All changes made in this file will be lost!
@@ -22,11 +22,11 @@ class Ui_Pokerbot(object):
         self.centralwidget = QtGui.QWidget(Pokerbot)
         self.centralwidget.setObjectName("centralwidget")
         self.last_decision = QtGui.QLabel(self.centralwidget)
-        self.last_decision.setGeometry(QtCore.QRect(20, 230, 291, 31))
+        self.last_decision.setGeometry(QtCore.QRect(330, 230, 281, 31))
         font = QtGui.QFont()
         font.setPointSize(12)
-        font.setWeight(50)
-        font.setBold(False)
+        font.setWeight(75)
+        font.setBold(True)
         self.last_decision.setFont(font)
         self.last_decision.setAutoFillBackground(False)
         self.last_decision.setFrameShape(QtGui.QFrame.Panel)
@@ -184,7 +184,7 @@ class Ui_Pokerbot(object):
         self.mplv4.setObjectName("mplv4")
         self.vLayout4.addWidget(self.mplv4)
         self.status = QtGui.QLabel(self.centralwidget)
-        self.status.setGeometry(QtCore.QRect(330, 230, 281, 31))
+        self.status.setGeometry(QtCore.QRect(20, 230, 291, 31))
         font = QtGui.QFont()
         font.setPointSize(12)
         font.setWeight(50)
