@@ -298,6 +298,11 @@ class Logging(object):
 
         return y
 
+    def get_strategy_list(self):
+        strategy_list=list(self.LogDataFile['Template'].unique())
+        return strategy_list
+
+
 def pivot_by_template():
     LogFilename = 'log'
     p_value = 'Strategy345'

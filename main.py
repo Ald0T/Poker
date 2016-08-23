@@ -173,8 +173,11 @@ class Tools(object):
             except:
                 pass
             return t
+        try:
+            img_orig.save('pics/ocr_debug_' + name + '.png')
+        except:
+            logger.warning("Coulnd't safe debugging png file for ocr")
 
-        img_orig.save('pics/ocr_debug_' + name + '.png')
         basewidth = 200
         wpercent = (basewidth / float(img_orig.size[0]))
         hsize = int((float(img_orig.size[1]) * float(wpercent)))
@@ -193,7 +196,10 @@ class Tools(object):
             lst.append(pytesseract.image_to_string(img_min, None, False, "-psm 6"))
         except Exception as e:
             logger.error(str(e))
-            self.entireScreenPIL.save('pics/err_debug_fullscreen.png')
+            try:
+                self.entireScreenPIL.save('pics/err_debug_fullscreen.png')
+            except:
+                logger.warning("Coulnd't safe debugging png file for ocr")
         # try:
         #    lst.append(pytesseract.image_to_string(img_med, None, False, "-psm 6"))
         # except Exception as e:
@@ -205,7 +211,10 @@ class Tools(object):
                 lst.append(pytesseract.image_to_string(img_mod, None, False, "-psm 6"))
         except Exception as e:
             logger.error(str(e))
-            self.entireScreenPIL.save('pics/err_debug_fullscreen.png')
+            try:
+                self.entireScreenPIL.save('pics/err_debug_fullscreen.png')
+            except:
+                logger.warning("Coulnd't safe debugging png file for ocr")
 
         try:
             final_value = ''
@@ -915,11 +924,7 @@ class QtThreadManager(QtCore.QThread):
 
     def run(self):
             global LogFilename, h, L, p, mouse, t, a, d, terminalmode
-
-
-            LogFilename = 'log'
             h = History()
-            L = Logging(LogFilename)
             a = Tools()
 
             if p.XML_entries_list1['pokerSite'].text == "PS":
@@ -1037,6 +1042,9 @@ if __name__ == '__main__':
     p = XMLHandler('strategies.xml')
     p.read_XML()
 
+    LogFilename = 'log'
+    L = Logging(LogFilename)
+
     if setupmode:
         a = Tools()
         a.setup_get_item_location()
@@ -1050,7 +1058,7 @@ if __name__ == '__main__':
         ui = Ui_Pokerbot()
         ui.setupUi(MainWindow)
 
-        ui_action_and_signals = UIActionAndSignals(ui, p)
+        ui_action_and_signals = UIActionAndSignals(ui, p, L)
 
         t1=QtThreadManager()
         t1.start_separate_thread()

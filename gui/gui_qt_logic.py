@@ -23,7 +23,7 @@ class UIActionAndSignals(QObject):
     signal_curve_chart_update1=QtCore.pyqtSignal(float,float,float,float,float,float,str,str)
     signal_curve_chart_update2 = QtCore.pyqtSignal(float, float, float, float, float, float, float, float,float)
 
-    def __init__(self,ui,p):
+    def __init__(self,ui,p,l):
         QObject.__init__(self)
         self.ui=ui
         self.progressbar_value=0
@@ -50,7 +50,7 @@ class UIActionAndSignals(QObject):
         # ui.button_strategy_editor.clicked.connect()
         # ui.button_options.clicked.connect()
 
-        ui.button_log_analyser.clicked.connect(lambda: self.open_strategy_analyser(p))
+        ui.button_log_analyser.clicked.connect(lambda: self.open_strategy_analyser(p,l))
 
         ui.button_pause.clicked.connect(lambda: self.pause(ui,p))
         ui.button_resume.clicked.connect(lambda: self.resume(ui,p))
@@ -69,7 +69,7 @@ class UIActionAndSignals(QObject):
         ui.button_log_analyser.setEnabled(False)
         p.pause=False
 
-    def open_strategy_analyser(self,p):
+    def open_strategy_analyser(self,p,l):
         self.stragegy_analyser_form = QtGui.QWidget()
         ui_analyser = Ui_Form()
         ui_analyser.setupUi(self.stragegy_analyser_form)
@@ -77,6 +77,10 @@ class UIActionAndSignals(QObject):
 
         self.gui_bar2 = BarPlotter2(ui_analyser, p)
         self.gui_fundschange = FundsChangePlot(ui_analyser, p)
+
+        ui_analyser.combobox_actiontype.addItems(['Fold','Call','Bet','BetPlus''Bluff'])
+        ui_analyser.combobox_gamestage.addItems(['PreFlop','Flop','Turn','River'])
+        ui_analyser.combobox_strategy.addItems(l.get_strategy_list())
 
     def increase_progressbar(self, value):
         self.progressbar_value+=value
